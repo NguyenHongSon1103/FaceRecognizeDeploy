@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Project 1: Face classification</title>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.2.2/jquery.form.min.js"></script>
+    <link class="jsbin" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css" rel="stylesheet" type="text/css" />
+<!--    <script class="jsbin" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>-->
+<!--    <script class="jsbin" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.0/jquery-ui.min.js"></script>-->
+   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+   <link href="https://hroy.eu/bootstrap/docs/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container">
+   <div class="header">
+       <h3 class="text-muted">Project 1: Phân loại khuôn mặt</h3>
+   </div>
+   <form id="formImage" enctype="multipart/form-data" method="post" >
+       <div class="jumbotron">
+           <h1>Phân loại khuôn mặt</h1>
+
+              <div>
+                  <p>Chọn ảnh: </p><input type="file" id="inputImage" name="inputImage" onchange="javascript:readURL(this);"/>
+              </div>
+
+              <div id="showImage" class="col-md-5">
+                <img id="choosedImage" src="#" alt="image"/>
+              </div>
+              <div id="resultDiv" class="col-md-7">
+
+              </div>
+               <div>
+                   <button type="button" id="btnStart" name="btnStart" class="btn btn-lg btn-success">Go</button>
+               </div>
+
+        </div>
+   </form>
+   <footer class="footer">
+            <p>Authors: Nguyễn Hồng Sơn - 2017339 &copy; Copyright 2019</p>
+   </footer>
+
+</div>
+</body>
+</html>
+<script type="text/javascript" language="JavaScript">
+
+    var index = 1;
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#choosedImage')
+                    .attr('src', e.target.result)
+                    .width(256)
+                    .height(256);
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    var predict = '<div> <%= name %><//div>'+
+        '<div> <%= num %><//div>'+
+        '<div> <%= class_name %> <//div>';
+
+
+    $('#btnStart').click(function () {
+        var data = new FormData();
+        data.append('image',$('#inputImage')[0].files[0]);
+
+        $.ajax({
+            type: 'POST',
+            url: "/classifyFace",
+            processData:false,
+            contentType:false,
+            data: data,
+            success: function(predicts) {
+                 $('#resultDiv').empty();
+                 console.log(predicts);
+                 var pre = JSON.parse(predicts);
+                 if (pre.success == "True") {
+                     const name = "Kết quả:"
+                     num = pre['class_index']
+                     class_name = pre['class_name']
+                     run_time = pre['run_time']
+                     $('#resultDiv').append(
+                        '<div> Đã thực hiện: ' + index + ' lần <//div>' +
+                        '<div>' + name + '<//div>'+
+                        '<div>Ảnh thuộc lớp: ' + num + '<//div>'+
+                        '<div>Tên lớp: ' + class_name + '<//div>'+
+                        '<div>Thời gian thực hiện: ' + run_time +'<//div>');
+                 } else {
+                     $('#resultDiv').append("Error");
+                 }
+                 index = index + 1;
+            },
+            error: function(){
+                console.log("error");
+                console.log(data);
+            }
+        });
+    });
+
+</script>
