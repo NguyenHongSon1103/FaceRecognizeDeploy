@@ -26,7 +26,7 @@
               </div>
 
               <div id="showImage" class="col-md-5">
-                <img id="choosedImage" src="#" alt="image"/>
+                <img id="choosedImage" src="#" alt="image"/> <img id="boundingImage" src="#" alt="bounding image"/>
               </div>
               <div id="resultDiv" class="col-md-7">
 
@@ -79,25 +79,45 @@
                  $('#resultDiv').empty();
                  console.log(predicts);
                  var pre = JSON.parse(predicts);
-                 if (pre.success == "True") {
-                     const name = "Kết quả:"
-                     num = pre['class_index']
-                     class_name = pre['class_name']
-                     run_time = pre['run_time']
-                     $('#resultDiv').append(
-                        '<div> Đã thực hiện: ' + index + ' lần <//div>' +
-                        '<div>' + name + '<//div>'+
-                        '<div>Ảnh thuộc lớp: ' + num + '<//div>'+
-                        '<div>Tên lớp: ' + class_name + '<//div>'+
-                        '<div>Thời gian thực hiện: ' + run_time +'<//div>');
-                 } else {
-                     $('#resultDiv').append("Error");
+
+                 run_time = pre['run_time'];
+                 num_of_faces = pre['num_of_faces'];
+                 img_source = pre['img_bounding_src'];
+                 var htmlString = '<div> Đã thực hiện thành công: ' + index + ' lần </div>' +
+                                  '<div>Thời gian thực hiện: ' + run_time +'</div>'+
+                                  '<div>Tổng số khuôn mặt: ' + num_of_faces +'</div>'+
+                                  '<div>'+
+                                        '<table class="table">'+
+                                            '<tr>'+
+                                                '<th>STT</th>'+
+                                                '<th>Tên</th>'+
+                                                '<th>Thuộc class</th>'+
+                                            '</tr>';
+                 for(var i = 0; i < num_of_faces; i++)
+                 {
+                    var face = pre['face'+i];
+                    console.log(face);
+                    num = face.class_index;
+                    name = face.class_name;
+                    htmlString +=
+                    '<tr>'+
+                        '<td>'+(i+1)+'</td>' +
+                        '<td>' + name + '</td>'+
+                        '<td>' + num + '</td>'+
+                    '</tr>';
                  }
+                 htmlString += '</table></div>';
+                 $('#resultDiv').append(htmlString);
+
+                 var b64_image = pre['base64_image'];
+                 $('#boundingImage').attr('src','data:image/jpg;base64,'+b64_image)
+                                     .width(256)
+                                     .height(256);
                  index = index + 1;
             },
-            error: function(){
-                console.log("error");
-                console.log(data);
+            error: function(predicts){
+                var pre = JSON.parse(predicts)
+                $('#resultDiv').append("Error: " + pre['error']);
             }
         });
     });
